@@ -1,4 +1,4 @@
-import * as vscode from 'intellij';
+import * as intellij from 'intellij';
 import { JupyterDisplay } from './display/main';
 import { KernelStatus } from './display/kernelStatus';
 import { Commands } from './common/constants';
@@ -29,7 +29,7 @@ export class Jupyter extends intellij.Disposable {
     private codeHelper: CodeHelper;
     private messageParser: MessageParser;
     private notebookManager: NotebookManager;
-    constructor(private outputChannel: vscode.OutputChannel) {
+    constructor(private outputChannel: intellij.OutputChannel) {
         super(() => { });
         this.disposables = [];
         this.registerCommands();
@@ -60,7 +60,7 @@ export class Jupyter extends intellij.Disposable {
                     this.kernelManager = new Manager(this.outputChannel, this.notebookManager);
                 }
                 else {
-                    const jupyterClient = new JupyterClientAdapter(this.outputChannel, vscode.workspace.rootPath);
+                    const jupyterClient = new JupyterClientAdapter(this.outputChannel, intellij.workspace.rootPath);
                     this.kernelManager = new PyManager.Manager(this.outputChannel, this.notebookManager, jupyterClient);
                 }
 
@@ -107,7 +107,7 @@ export class Jupyter extends intellij.Disposable {
             this.onKernelChanged(null);
         });
     }
-    public hasCodeCells(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<boolean> {
+    public hasCodeCells(document: intellij.TextDocument, token: intellij.CancellationToken): Promise<boolean> {
         return new Promise<boolean>(resolve => {
             this.codeLensProvider.provideCodeLenses(document, token).then(codeLenses => {
                 resolve(Array.isArray(codeLenses) && codeLenses.length > 0);
@@ -118,7 +118,7 @@ export class Jupyter extends intellij.Disposable {
             });
         });
     }
-    private onEditorChanged(editor: vscode.TextEditor) {
+    private onEditorChanged(editor: intellij.TextEditor) {
         if (!editor || !editor.document) {
             return;
         }
@@ -162,7 +162,7 @@ export class Jupyter extends intellij.Disposable {
             .then(() => {
                 return this.executeAndDisplay(this.kernel, code).catch(reason => {
                     const message = typeof reason === 'string' ? reason : reason.message;
-                    vscode.window.showErrorMessage(message);
+                    intellij.window.showErrorMessage(message);
                     this.outputChannel.appendLine(formatErrorForLogging(reason));
                 });
             }).catch(reason => {
@@ -174,7 +174,7 @@ export class Jupyter extends intellij.Disposable {
                     message = 'Unknown error';
                 }
                 this.outputChannel.appendLine(formatErrorForLogging(reason));
-                vscode.window.showErrorMessage(message, 'View Errors').then(item => {
+                intellij.window.showErrorMessage(message, 'View Errors').then(item => {
                     if (item === 'View Errors') {
                         this.outputChannel.show();
                     }
@@ -198,7 +198,7 @@ export class Jupyter extends intellij.Disposable {
             });
         }
         else {
-            return this.kernelManager.runCodeAsObservable(code, kernel);
+            return KernelManagerImpl.runCodeAsObservable(code, kernel);
         }
     }
     async executeSelection(): Promise<any> {
@@ -219,24 +219,24 @@ export class Jupyter extends intellij.Disposable {
             const code = document.getText(range);
             return this.executeCode(code, document.languageId);
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ExecuteSelectionOrLineInKernel,
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.ExecuteSelectionOrLineInKernel,
             this.executeSelection.bind(this)));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs_For_Language, (language: string) => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.Get_All_KernelSpecs_For_Language, (language: string) => {
             if (this.kernelManager) {
                 return this.kernelManager.getAllKernelSpecsFor(language);
             }
             return Promise.resolve();
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.StartKernelForKernelSpeck, (kernelSpec: Kernel.ISpecModel, language: string) => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.StartKernelForKernelSpeck, (kernelSpec: Kernel.ISpecModel, language: string) => {
             if (this.kernelManager) {
                 return this.kernelManager.startKernel(kernelSpec, language);
             }
             return Promise.resolve();
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.StartNotebook, () => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.StartNotebook, () => {
             this.notebookManager.startNewNotebook();
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.ProvideNotebookDetails, () => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.ProvideNotebookDetails, () => {
             inputNotebookDetails()
                 .then(nb => {
                     if (!nb) { return; }
@@ -250,15 +250,15 @@ export class Jupyter extends intellij.Disposable {
                     this.notebookManager.setNotebook(nb);
                 });
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Notebook.ShutDown, () => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.Notebook.ShutDown, () => {
             this.notebookManager.shutdown();
         }));
     }
     private registerKernelCommands() {
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Interrupt, () => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.Kernel.Interrupt, () => {
             this.kernel.interrupt();
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Restart, () => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.Kernel.Restart, () => {
             if (this.kernelManager) {
                 this.kernelManager.restartKernel(this.kernel).then(kernel => {
                     kernel.getSpec().then(spec => {
@@ -268,7 +268,7 @@ export class Jupyter extends intellij.Disposable {
                 });
             }
         }));
-        this.disposables.push(vscode.commands.registerCommand(Commands.Jupyter.Kernel.Shutdown, (kernel: Kernel.IKernel) => {
+        this.disposables.push(intellij.commands.registerCommand(Commands.Jupyter.Kernel.Shutdown, (kernel: Kernel.IKernel) => {
             kernel.getSpec().then(spec => {
                 this.kernelManager.destroyRunningKernelFor(spec.language);
                 this.onKernelChanged();

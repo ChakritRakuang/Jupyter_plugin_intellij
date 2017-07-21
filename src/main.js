@@ -45,7 +45,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var vscode = require("intellij");
+var intellij = require("intellij");
 var main_1 = require("./display/main");
 var kernelStatus_1 = require("./display/kernelStatus");
 var constants_1 = require("./common/constants");
@@ -96,7 +96,7 @@ var Jupyter = (function (_super) {
                 _this.kernelManager = new manager_2.Manager(_this.outputChannel, _this.notebookManager);
             }
             else {
-                var jupyterClient = new main_2.JupyterClientAdapter(_this.outputChannel, vscode.workspace.rootPath);
+                var jupyterClient = new main_2.JupyterClientAdapter(_this.outputChannel, intellij.workspace.rootPath);
                 _this.kernelManager = new PyManager.Manager(_this.outputChannel, _this.notebookManager, jupyterClient);
             }
             _this.kernelCreationPromise.resolve(_this.kernelManager);
@@ -198,7 +198,7 @@ var Jupyter = (function (_super) {
             .then(function () {
             return _this.executeAndDisplay(_this.kernel, code).catch(function (reason) {
                 var message = typeof reason === 'string' ? reason : reason.message;
-                vscode.window.showErrorMessage(message);
+                intellij.window.showErrorMessage(message);
                 _this.outputChannel.appendLine(utils_1.formatErrorForLogging(reason));
             });
         }).catch(function (reason) {
@@ -210,7 +210,7 @@ var Jupyter = (function (_super) {
                 message = 'Unknown error';
             }
             _this.outputChannel.appendLine(utils_1.formatErrorForLogging(reason));
-            vscode.window.showErrorMessage(message, 'View Errors').then(function (item) {
+            intellij.window.showErrorMessage(message, 'View Errors').then(function (item) {
                 if (item === 'View Errors') {
                     _this.outputChannel.show();
                 }
@@ -235,7 +235,7 @@ var Jupyter = (function (_super) {
             });
         }
         else {
-            return this.kernelManager.runCodeAsObservable(code, kernel);
+            return kernel_manager_1.KernelManagerImpl.runCodeAsObservable(code, kernel);
         }
     };
     Jupyter.prototype.executeSelection = function () {
@@ -271,23 +271,23 @@ var Jupyter = (function (_super) {
             var code = document.getText(range);
             return _this.executeCode(code, document.languageId);
         }));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.ExecuteSelectionOrLineInKernel, this.executeSelection.bind(this)));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.Get_All_KernelSpecs_For_Language, function (language) {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.ExecuteSelectionOrLineInKernel, this.executeSelection.bind(this)));
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.Get_All_KernelSpecs_For_Language, function (language) {
             if (_this.kernelManager) {
                 return _this.kernelManager.getAllKernelSpecsFor(language);
             }
             return Promise.resolve();
         }));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.StartKernelForKernelSpeck, function (kernelSpec, language) {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.StartKernelForKernelSpeck, function (kernelSpec, language) {
             if (_this.kernelManager) {
                 return _this.kernelManager.startKernel(kernelSpec, language);
             }
             return Promise.resolve();
         }));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.StartNotebook, function () {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.StartNotebook, function () {
             _this.notebookManager.startNewNotebook();
         }));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.ProvideNotebookDetails, function () {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.ProvideNotebookDetails, function () {
             manager_1.inputNotebookDetails()
                 .then(function (nb) {
                 if (!nb) {
@@ -305,16 +305,16 @@ var Jupyter = (function (_super) {
                 _this.notebookManager.setNotebook(nb);
             });
         }));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.Notebook.ShutDown, function () {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.Notebook.ShutDown, function () {
             _this.notebookManager.shutdown();
         }));
     };
     Jupyter.prototype.registerKernelCommands = function () {
         var _this = this;
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.Kernel.Interrupt, function () {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.Kernel.Interrupt, function () {
             _this.kernel.interrupt();
         }));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.Kernel.Restart, function () {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.Kernel.Restart, function () {
             if (_this.kernelManager) {
                 _this.kernelManager.restartKernel(_this.kernel).then(function (kernel) {
                     kernel.getSpec().then(function (spec) {
@@ -324,7 +324,7 @@ var Jupyter = (function (_super) {
                 });
             }
         }));
-        this.disposables.push(vscode.commands.registerCommand(constants_1.Commands.Jupyter.Kernel.Shutdown, function (kernel) {
+        this.disposables.push(intellij.commands.registerCommand(constants_1.Commands.Jupyter.Kernel.Shutdown, function (kernel) {
             kernel.getSpec().then(function (spec) {
                 _this.kernelManager.destroyRunningKernelFor(spec.language);
                 _this.onKernelChanged();

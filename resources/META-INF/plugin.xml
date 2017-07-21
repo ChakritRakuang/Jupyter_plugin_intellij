@@ -2,17 +2,15 @@
   <id>com.chakrit.rakhuang.bombstudio</id>
   <name>Plugin Jupyter</name>
   <version>1.0</version>
-  <vendor email="chakrit.rakhuang@gmail.com">Bomb Studio (Thailand)</vendor>
+  <vendor email="chakrit.rakhuang@gmail.com">Bomb Studio</vendor>
 
   <description><![CDATA[
       An extension with rich support for Jupyter.<br>
-      <em>most HTML tags may be used</em>
+
     ]]></description>
 
-  <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
-    ]]>
+  <change-notes>
+
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
